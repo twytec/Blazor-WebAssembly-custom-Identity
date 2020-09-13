@@ -1,0 +1,53 @@
+﻿@page "/auth/login/{url}"
+@page "/auth/login"
+@inject NavigationManager Navigation
+@inject Auth.AuthService auth
+@inject HttpClient httpClient
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-6 offset-lg-3 col-md-12">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" class="form-control" @bind="loginViewModel.Email">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" class="form-control" @bind="loginViewModel.Password">
+            </div>
+            <p class="text-danger">@error</p>
+            <button class="btn btn-primary btn-block" @onclick="SendLogin">Login</button>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Url { get; set; }
+
+    private SharedModels.LoginViewModel loginViewModel = new SharedModels.LoginViewModel() { Email = "admin@local.de", Password = "Test123!" };
+    string error;
+
+    private async void SendLogin()
+    {
+        if (string.IsNullOrEmpty(loginViewModel.Email) || string.IsNullOrEmpty(loginViewModel.Password))
+        {
+            error = "Email and password is required";
+            StateHasChanged();
+            return;
+        }
+
+        var res = await auth.LoginAsync(loginViewModel);
+        if (res == string.Empty)
+        {
+            if (string.IsNullOrEmpty(Url))
+                Navigation.NavigateTo("/");
+            else
+                Navigation.NavigateTo(Uri.UnescapeDataString(Url));
+        }
+
+        error = res;
+        StateHasChanged();
+    }
+}
